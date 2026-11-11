@@ -1,5 +1,11 @@
 # 🛰️ MST — Macan Satellite Tracker
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Release-v1.0.0-FF9E0B?style=for-the-badge" alt="Release Version" />
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Platform" />
+  <img src="https://img.shields.io/badge/Architecture-Jetpack%20Compose-4285F4?style=for-the-badge" alt="Jetpack Compose" />  
+</p>
+
 **Real-time satellite tracking, offline-first TLE catalog, pass prediction, and a 2D sky radar — all in your pocket.**
 
 MST is an Android app that shows where satellites are right now, predicts when they will fly over your location, and helps you point your phone at the sky to find them. It ships with a built-in catalog so it works out of the box, even without an internet connection.
