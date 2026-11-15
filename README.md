@@ -1,7 +1,7 @@
 # 🛰️ MST — Macan Satellite Tracker
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.0.0-FF9E0B?style=for-the-badge" alt="Release Version" />
+  <img src="https://img.shields.io/badge/Release-v1.1.0-FF9E0B?style=for-the-badge" alt="Release Version" />
   <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Platform" />
   <img src="https://img.shields.io/badge/Architecture-Jetpack%20Compose-4285F4?style=for-the-badge" alt="Jetpack Compose" />  
 </p>
@@ -27,15 +27,16 @@ MST is an Android app that shows where satellites are right now, predicts when t
 
 ### 🌍 Live Orbit Map
 - Real-time satellite position, updated every second
+- Active propagation model indicator (`SGP4` / `SDP4` badge) displayed directly on the map HUD
 - Ground track for the next 90 minutes
 - Satellite footprint (coverage circle) on the map
 - Your observer location pinned on the map
 - Pinch to zoom and drag to pan
 - Quick-switch bar to jump between satellites
-- Telemetry sheet: latitude/longitude, altitude, velocity, orbital period, azimuth/elevation, and range to observer
+- Telemetry sheet: active propagation model badge (`SGP4` / `SDP4`), geodetic latitude/longitude, ellipsoid altitude, velocity, orbital period, azimuth/elevation, and range to observer
 
 ### 📚 Satellite Catalog (Offline Ready)
-- Built-in catalog with Indonesian satellites (SATRIA-1, Telkom 3S, Telkom 4, BRISAT, Nusantara Satu, LAPAN-A2, LAPAN-A3), ISS, Tiangong, NOAA, Meteor-M2, Starlink, and Hubble
+- Built-in catalog with updated epoch seed data for Indonesian satellites (SATRIA-1, Telkom 3S, Telkom 4, BRISAT, Nusantara Satu, LAPAN-A2, LAPAN-A3), ISS, Tiangong, NOAA, Meteor-M2, Starlink, and Hubble
 - Search by name or NORAD ID
 - Filter by category: All, Favorites, Indonesia, Stations, Weather, Starlink, Geostationary
 - Mark favorites for quick access
@@ -92,19 +93,18 @@ MST is an Android app that shows where satellites are right now, predicts when t
 
 ## 🔬 How It Works
 
-MST uses a pure Kotlin orbit propagation engine that includes:
-- TLE parsing
-- Keplerian orbit solving
-- J2 secular perturbations (Earth oblateness)
-- ECI → ECEF conversion using Greenwich Mean Sidereal Time
-- Topocentric azimuth/elevation/range calculation
-- Ground track generation and pass prediction
+MST uses a full, pure Kotlin **SGP4/SDP4 orbital propagation engine** (`Sgp4Sdp4Propagator` & `Sgp4EngineWrapper`) adhering to **NORAD Spacetrack Report #3 / Vallado** standards:
+- **Mean Motion Recovery & WGS-72 Constants:** Removes Kozai distortion and computes semi-major axis and standard atmospheric constants.
+- **SGP4 (Near-Earth, Orbital Period $< 225\text{ minutes}$):** Models secular perturbations ($J_2, J_4$), full atmospheric drag ($B^*$, $C_1$–$C_5$, $D_2$–$D_4$ dynamically adjusted by perigee altitude), and short-period periodic corrections ($J_2, J_3$) for LEO satellites (e.g., ISS, Starlink, NOAA, LAPAN-A2/A3).
+- **SDP4 (Deep-Space, Orbital Period $\ge 225\text{ minutes}$):** Automatically engages for geostationary/high-altitude satellites (e.g., SATRIA-1, Telkom 4, Telkom 3S, BRIsat, Nusantara Satu) and 12-hour elliptical orbits (Molniya/GPS). Accounts for lunar-solar gravitational perturbations (secular and periodic terms with Lyddane modification for low inclinations) and 24-hour / 12-hour geopotential resonance integration.
+- **Geodetic & Velocity Transformations:** Computes true ECI position and velocity vectors, IAU 1982 GMST sidereal rotation, and iterative WGS-84 conversion to geodetic latitude, longitude, and ellipsoid altitude.
+- **Topocentric & Pass Calculations:** Derives topocentric azimuth/elevation/range, ground tracks, and upcoming pass predictions.
 
 Orbital data comes from TLE (Two-Line Element) sets, either bundled in the app or downloaded from CelesTrak.
 
 ### ⚠️ Accuracy Notes
-- The propagator is a simplified model, not a full SGP4 implementation. It does not model atmospheric drag or deep-space perturbations, so errors grow as the TLE gets older.
-- The bundled catalog is a static snapshot. Sync with CelesTrak for current data.
+- While MST now implements full SGP4/SDP4 perturbation models (including atmospheric drag and deep-space lunar-solar effects), TLE accuracy still degrades naturally over days or weeks—especially for Low Earth Orbit (LEO) satellites due to variable solar activity and atmospheric density. Sync with CelesTrak regularly for peak precision.
+- The bundled catalog serves as an offline baseline with updated seed epochs, though syncing with CelesTrak is always recommended for live tracking.
 - Pass times are calculated in 30-second steps, so expect roughly ±30 seconds of resolution.
 - The world map uses simplified outlines for orientation only.
 
@@ -136,6 +136,7 @@ Your location is used only on your device to calculate satellite visibility. It 
 ## 🙏 Credits
 
 - Orbital data courtesy of [CelesTrak](https://celestrak.org)
+- Orbital propagation algorithms based on NORAD Spacetrack Report #3 & Vallado et al.
 
 ---
 
